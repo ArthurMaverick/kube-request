@@ -1,0 +1,2 @@
+air:
+	~/go/bin/air

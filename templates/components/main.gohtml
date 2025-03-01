@@ -1,0 +1,193 @@
+{{ define "main" }}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <!-- Node Metrics Cards -->
+  <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+    <!-- Total Nodes Card -->
+    <div class="bg-storm-darker rounded-lg shadow-xl overflow-hidden border border-gray-800">
+      <div class="p-4">
+        <div class="flex items-center justify-between mb-2">
+          <div class="flex items-center space-x-2">
+            <div class="p-1.5 bg-storm-blue/10 rounded-lg">
+              <svg class="w-5 h-5 text-storm-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+              </svg>
+            </div>
+            <h3 class="text-sm font-medium text-gray-400">Total Nodes</h3>
+          </div>
+        </div>
+        <div class="mt-2 flex items-baseline justify-between">
+          <p class="text-2xl font-semibold text-white">{{ .NodeAggregator.TotalNodes }}</p>
+          <span class="text-sm font-medium {{ if eq .NodeAggregator.TotalNodes .NodeAggregator.HealthyNodes }}text-emerald-400{{ else }}text-red-400{{ end }}">
+            {{ .NodeAggregator.HealthyNodes }} Healthy
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Node Health Card -->
+    <div class="bg-storm-darker rounded-lg shadow-xl overflow-hidden border border-gray-800">
+      <div class="p-4">
+        <div class="flex items-center justify-between mb-2">
+          <div class="flex items-center space-x-2">
+            <div class="p-1.5 bg-storm-blue/10 rounded-lg">
+              <svg class="w-5 h-5 text-storm-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <h3 class="text-sm font-medium text-gray-400">Health Status</h3>
+          </div>
+        </div>
+        {{ $healthPercentage := mul (div (float64 .NodeAggregator.HealthyNodes) (float64 .NodeAggregator.TotalNodes)) 100 }}
+        <div class="mt-2 flex items-baseline justify-between">
+          <p class="text-2xl font-semibold text-white">{{ formatPercentage $healthPercentage }}</p>
+          <div class="flex items-center">
+            <div class="w-2 h-2 rounded-full {{ if eq .NodeAggregator.TotalNodes .NodeAggregator.HealthyNodes }}bg-emerald-400{{ else }}bg-red-400{{ end }} mr-2"></div>
+            <span class="text-sm {{ if eq .NodeAggregator.TotalNodes .NodeAggregator.HealthyNodes }}text-emerald-400{{ else }}text-red-400{{ end }}">
+              {{ if eq .NodeAggregator.TotalNodes .NodeAggregator.HealthyNodes }}Healthy{{ else }}Warning{{ end }}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Node CPU Card -->
+    <div class="bg-storm-darker rounded-lg shadow-xl overflow-hidden border border-gray-800">
+      <div class="p-4">
+        <div class="flex items-center justify-between mb-2">
+          <div class="flex items-center space-x-2">
+            <div class="p-1.5 bg-storm-blue/10 rounded-lg">
+              <svg class="w-5 h-5 text-storm-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" />
+              </svg>
+            </div>
+            <h3 class="text-sm font-medium text-gray-400">CPU Usage</h3>
+          </div>
+        </div>
+        {{ $cpuPercentage := mul (div (float64 .NodeAggregator.UsedCPU) (float64 .NodeAggregator.TotalCPU)) 100 }}
+        <div class="mt-2 flex items-baseline justify-between">
+          <p class="text-2xl font-semibold text-white">{{ formatCPU (float64 .NodeAggregator.UsedCPU) }}</p>
+          <span class="text-sm {{ if le $cpuPercentage 70.0 }}text-emerald-400{{ else if le $cpuPercentage 85.0 }}text-yellow-400{{ else }}text-red-400{{ end }}">
+            {{ formatPercentage $cpuPercentage }}
+          </span>
+        </div>
+        <div class="mt-2">
+          <div class="w-full bg-gray-700 rounded-full h-1">
+            <div class="h-1 rounded-full {{ if le $cpuPercentage 70.0 }}bg-emerald-400{{ else if le $cpuPercentage 85.0 }}bg-yellow-400{{ else }}bg-red-400{{ end }}"
+                 style="width: {{ formatPercentage $cpuPercentage }}"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Node Memory Card -->
+    <div class="bg-storm-darker rounded-lg shadow-xl overflow-hidden border border-gray-800">
+      <div class="p-4">
+        <div class="flex items-center justify-between mb-2">
+          <div class="flex items-center space-x-2">
+            <div class="p-1.5 bg-storm-blue/10 rounded-lg">
+              <svg class="w-5 h-5 text-storm-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+            </div>
+            <h3 class="text-sm font-medium text-gray-400">Memory Usage</h3>
+          </div>
+        </div>
+        {{ $memoryPercentage := mul (div (float64 .NodeAggregator.UsedMemory) (float64 .NodeAggregator.TotalMemory)) 100 }}
+        <div class="mt-2 flex items-baseline justify-between">
+          <p class="text-2xl font-semibold text-white">{{ formatMemory (float64 .NodeAggregator.UsedMemory) }}</p>
+          <span class="text-sm {{ if le $memoryPercentage 70.0 }}text-emerald-400{{ else if le $memoryPercentage 85.0 }}text-yellow-400{{ else }}text-red-400{{ end }}">
+            {{ formatPercentage $memoryPercentage }}
+          </span>
+        </div>
+        <div class="mt-2">
+          <div class="w-full bg-gray-700 rounded-full h-1">
+            <div class="h-1 rounded-full {{ if le $memoryPercentage 70.0 }}bg-emerald-400{{ else if le $memoryPercentage 85.0 }}bg-yellow-400{{ else }}bg-red-400{{ end }}"
+                 style="width: {{ formatPercentage $memoryPercentage }}"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Resource Overview Cards -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <!-- CPU Card -->
+    <div class="bg-storm-darker rounded-lg shadow-xl overflow-hidden border border-gray-800">
+      <div class="p-6">
+        <div class="flex items-center justify-between mb-6">
+          <div class="flex items-center space-x-3">
+            <div class="p-2 bg-storm-blue/10 rounded-lg">
+              <svg class="w-6 h-6 text-storm-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" />
+              </svg>
+            </div>
+            <h2 class="text-lg font-semibold text-white">CPU Resources</h2>
+          </div>
+          <div class="flex items-center space-x-2">
+            <span class="px-2.5 py-0.5 rounded-full text-xs font-medium bg-storm-blue/10 text-storm-blue">
+              {{ .CurrentNamespace }} Namespace
+            </span>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-3 gap-6">
+          <div class="text-center">
+            <p class="text-sm font-medium text-gray-400 mb-1">Usage</p>
+            <p class="text-2xl font-bold text-white">{{ printf "%dm" .TotalCpuUsage }}</p>
+            <div class="mt-1 text-xs text-gray-500">Current</div>
+          </div>
+          <div class="text-center">
+            <p class="text-sm font-medium text-gray-400 mb-1">Requests</p>
+            <p class="text-2xl font-bold text-white">{{ printf "%dm" .TotalCpuRequests }}</p>
+            <div class="mt-1 text-xs text-gray-500">Allocated</div>
+          </div>
+          <div class="text-center">
+            <p class="text-sm font-medium text-gray-400 mb-1">Limits</p>
+            <p class="text-2xl font-bold text-white">{{ printf "%dm" .TotalCpuLimit }}</p>
+            <div class="mt-1 text-xs text-gray-500">Maximum</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Memory Card -->
+    <div class="bg-storm-darker rounded-lg shadow-xl overflow-hidden border border-gray-800">
+      <div class="p-6">
+        <div class="flex items-center justify-between mb-6">
+          <div class="flex items-center space-x-3">
+            <div class="p-2 bg-storm-blue/10 rounded-lg">
+              <svg class="w-6 h-6 text-storm-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+            </div>
+            <h2 class="text-lg font-semibold text-white">Memory Resources</h2>
+          </div>
+          <div class="flex items-center space-x-2">
+            <span class="px-2.5 py-0.5 rounded-full text-xs font-medium bg-storm-blue/10 text-storm-blue">
+              {{ .CurrentNamespace }} Namespace
+            </span>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-3 gap-6">
+          <div class="text-center">
+            <p class="text-sm font-medium text-gray-400 mb-1">Usage</p>
+            <p class="text-2xl font-bold text-white">{{ printf "%.0fMi" .TotalMemoryUsage }}</p>
+            <div class="mt-1 text-xs text-gray-500">Current</div>
+          </div>
+          <div class="text-center">
+            <p class="text-sm font-medium text-gray-400 mb-1">Requests</p>
+            <p class="text-2xl font-bold text-white">{{ printf "%.0fMi" .TotalMemoryRequests }}</p>
+            <div class="mt-1 text-xs text-gray-500">Allocated</div>
+          </div>
+          <div class="text-center">
+            <p class="text-sm font-medium text-gray-400 mb-1">Limits</p>
+            <p class="text-2xl font-bold text-white">{{ printf "%.0fMi" .TotalMemoryLimit }}</p>
+            <div class="mt-1 text-xs text-gray-500">Maximum</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{{ end }}

@@ -1,0 +1,284 @@
+{{ define "layout" }}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>{{ .Title }}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom switch styles */
+        .switch-toggle {
+            position: relative;
+            display: inline-block;
+            width: 44px;
+            height: 24px;
+        }
+        .switch-toggle input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .switch-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #374151;
+            transition: .4s;
+            border-radius: 24px;
+        }
+        .switch-slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: #fff;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        input:checked + .switch-slider {
+            background-color: #3B82F6;
+        }
+        input:checked + .switch-slider:before {
+            transform: translateX(20px);
+        }
+        /* Countdown animation */
+        @keyframes countdown {
+            from { stroke-dashoffset: 0; }
+            to { stroke-dashoffset: 66; }
+        }
+    </style>
+    <script>
+        let refreshInterval;
+        let countdownInterval;
+
+        // Save state to localStorage
+        function saveState(isEnabled, interval) {
+            localStorage.setItem('autoRefreshState', JSON.stringify({
+                enabled: isEnabled,
+                interval: interval
+            }));
+        }
+
+        // Load state from localStorage
+        function loadState() {
+            const savedState = localStorage.getItem('autoRefreshState');
+            if (savedState) {
+                return JSON.parse(savedState);
+            }
+            return { enabled: false, interval: 30 };
+        }
+
+        function updateCountdown(seconds) {
+            const circle = document.querySelector('.countdown-circle');
+            if (!circle) return;
+
+            // Reset animation
+            circle.style.animation = 'none';
+            circle.offsetHeight; // Trigger reflow
+            circle.style.animation = `countdown ${seconds}s linear infinite`;
+        }
+
+        function refreshPage() {
+            // Store current scroll position
+            const scrollPos = window.scrollY;
+            localStorage.setItem('scrollPosition', scrollPos.toString());
+
+            // Perform the refresh
+            window.location.reload();
+        }
+
+        function startAutoRefresh(seconds, saveToStorage = true) {
+            const toggle = document.getElementById('auto-refresh-toggle');
+            const select = document.getElementById('refresh-interval');
+            const status = document.getElementById('refresh-status');
+            const countdownContainer = document.getElementById('countdown-container');
+
+            // Clear existing intervals
+            if (refreshInterval) {
+                clearInterval(refreshInterval);
+                clearInterval(countdownInterval);
+            }
+
+            // If turning off
+            if (!toggle.checked || seconds === 0) {
+                toggle.checked = false;
+                select.disabled = true;
+                status.innerHTML = '<span class="text-gray-400">Auto-refresh: Off</span>';
+                countdownContainer.classList.add('hidden');
+                if (saveToStorage) {
+                    saveState(false, parseInt(select.value));
+                }
+                return;
+            }
+
+            // Enable select and start refresh
+            select.disabled = false;
+
+            // Start new refresh interval
+            refreshInterval = setInterval(refreshPage, seconds * 1000);
+
+            // Update status and show countdown
+            status.innerHTML = `<span class="text-emerald-400">Auto-refresh: Active</span>`;
+            countdownContainer.classList.remove('hidden');
+            updateCountdown(seconds);
+
+            // Update countdown text
+            let remainingSeconds = seconds;
+            clearInterval(countdownInterval);
+            countdownInterval = setInterval(() => {
+                remainingSeconds -= 1;
+                if (remainingSeconds < 0) remainingSeconds = seconds;
+                document.getElementById('countdown-text').textContent = `${remainingSeconds}s`;
+            }, 1000);
+
+            if (saveToStorage) {
+                saveState(true, seconds);
+            }
+        }
+
+        // Sorting functionality
+        function sortTableByUsage() {
+            const tbody = document.querySelector('table tbody');
+            if (!tbody) return;
+
+            const rows = Array.from(tbody.querySelectorAll('tr'));
+
+            // Sort rows by CPU and Memory usage
+            rows.sort((a, b) => {
+                const aCpuUsage = parseFloat(a.querySelector('td:nth-child(4) .text-white')?.textContent) || 0;
+                const bCpuUsage = parseFloat(b.querySelector('td:nth-child(4) .text-white')?.textContent) || 0;
+                const aMemUsage = parseFloat(a.querySelector('td:nth-child(5) .text-white')?.textContent) || 0;
+                const bMemUsage = parseFloat(b.querySelector('td:nth-child(5) .text-white')?.textContent) || 0;
+
+                // Primary sort by CPU usage
+                if (aCpuUsage !== bCpuUsage) {
+                    return bCpuUsage - aCpuUsage;
+                }
+                // Secondary sort by Memory usage
+                return bMemUsage - aMemUsage;
+            });
+
+            // Clear and re-append sorted rows
+            rows.forEach(row => tbody.appendChild(row));
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            const toggle = document.getElementById('auto-refresh-toggle');
+            const select = document.getElementById('refresh-interval');
+
+            // Load saved state
+            const savedState = loadState();
+            
+            // Set initial values from saved state
+            toggle.checked = savedState.enabled;
+            select.value = savedState.interval;
+            select.disabled = !savedState.enabled;
+
+            // Restore scroll position if exists
+            const savedScrollPos = localStorage.getItem('scrollPosition');
+            if (savedScrollPos) {
+                window.scrollTo(0, parseInt(savedScrollPos));
+                localStorage.removeItem('scrollPosition');
+            }
+
+            // If auto-refresh was enabled, start it
+            if (savedState.enabled) {
+                startAutoRefresh(savedState.interval, false);
+            }
+
+            // Toggle event listener
+            toggle.addEventListener('change', (e) => {
+                if (e.target.checked) {
+                    select.disabled = false;
+                    startAutoRefresh(parseInt(select.value));
+                } else {
+                    startAutoRefresh(0);
+                }
+            });
+
+            // Select event listener
+            select.addEventListener('change', (e) => {
+                if (toggle.checked) {
+                    startAutoRefresh(parseInt(e.target.value));
+                } else {
+                    saveState(false, parseInt(e.target.value));
+                }
+            });
+
+            // Initial sort
+            sortTableByUsage();
+        });
+    </script>
+</head>
+<body class="bg-gray-900 text-gray-200">
+    <div class="flex flex-col min-h-screen">
+        {{/* {{ template "header" . }} */}}
+
+        <main class="flex-1">
+            <!-- Refresh Controls -->
+            <div class="max-w-[90rem] mx-auto px-4 sm:px-6 lg:px-8 py-4">
+                <div class="flex items-center justify-end space-x-6">
+                    <!-- Status -->
+                    <div id="refresh-status" class="text-sm">
+                        <span class="text-gray-400">Auto-refresh: Off</span>
+                    </div>
+
+                    <!-- Countdown -->
+                    <div id="countdown-container" class="hidden relative w-6 h-6">
+                        <svg class="transform -rotate-90 w-6 h-6">
+                            <circle
+                                class="countdown-circle"
+                                stroke="currentColor"
+                                stroke-width="2"
+                                fill="transparent"
+                                r="10.5"
+                                cx="12"
+                                cy="12"
+                                style="stroke-dasharray: 66; stroke-dashoffset: 0;"
+                            />
+                        </svg>
+                        <span id="countdown-text" class="absolute inset-0 flex items-center justify-center text-xs"></span>
+                    </div>
+
+                    <!-- Controls -->
+                    <div class="flex items-center bg-storm-darker rounded-lg border border-gray-800 p-2">
+                        <div class="flex items-center space-x-3 px-3">
+                            <label class="switch-toggle">
+                                <input type="checkbox" id="auto-refresh-toggle">
+                                <span class="switch-slider"></span>
+                            </label>
+                            <select id="refresh-interval" class="bg-transparent text-white text-sm focus:outline-none focus:ring-0 border-0">
+                                <option value="10">10 seconds</option>
+                                <option value="30">30 seconds</option>
+                                <option value="60">1 minute</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Error Message -->
+            {{ if .ErrorMessage }}
+            <div class="bg-red-600 text-white p-4">
+                <p>{{ .ErrorMessage }}</p>
+            </div>
+            {{ end }}
+
+            <!-- Main Content -->
+            {{ template "main" . }}
+
+            <!-- Table -->
+            {{ template "table" . }}
+        </main>
+
+        {{ template "footer" . }}
+    </div>
+</body>
+</html>
+{{ end }}

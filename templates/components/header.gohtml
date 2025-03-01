@@ -1,0 +1,57 @@
+{{ define "header" }}
+<nav class="bg-storm-darker border-b border-gray-800">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex items-center justify-between h-16">
+      <!-- Left side: Brand and navigation -->
+      <div class="flex items-center space-x-8">
+        <!-- Brand -->
+        <a href="/" class="flex items-center space-x-2">
+          <svg class="w-8 h-8 text-storm-blue" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
+          </svg>
+          <span class="text-xl font-bold bg-gradient-to-r from-storm-blue to-storm-blue-light bg-clip-text text-transparent">
+            KubeRequest
+          </span>
+        </a>
+        
+        <!-- Navigation Links -->
+        <div class="hidden md:flex items-center space-x-1">
+          <a href="/dashboard" class="px-3 py-2 rounded-md text-sm font-medium text-gray-300 hover:text-white hover:bg-gray-800 transition-colors">
+            Dashboard
+          </a>
+          <a href="/projects" class="px-3 py-2 rounded-md text-sm font-medium text-gray-300 hover:text-white hover:bg-gray-800 transition-colors">
+            Projects
+          </a>
+          <a href="/team" class="px-3 py-2 rounded-md text-sm font-medium text-gray-300 hover:text-white hover:bg-gray-800 transition-colors">
+            Team
+          </a>
+        </div>
+      </div>
+
+      <!-- Right side: Actions -->
+      <div class="flex items-center space-x-4">
+        <!-- Notifications -->
+        <button class="p-2 rounded-full text-gray-400 hover:text-white hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-storm-blue transition-colors">
+          <span class="sr-only">View notifications</span>
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 10-12 0v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
+          </svg>
+        </button>
+
+        <!-- Profile -->
+        <button class="p-2 rounded-full text-gray-400 hover:text-white hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-storm-blue transition-colors">
+          <span class="sr-only">View profile</span>
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.121 17.804A13.937 13.937 0 0112 15c2.686 0 5.193.697 7.879 1.804M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+          </svg>
+        </button>
+
+        <!-- Logout Button -->
+        <button class="bg-storm-blue hover:bg-storm-blue-light text-white px-4 py-2 rounded-md text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-storm-blue">
+          Logout
+        </button>
+      </div>
+    </div>
+  </div>
+</nav>
+{{ end }}
