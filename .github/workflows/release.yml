@@ -47,9 +47,9 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
         run: goreleaser release --clean
 
-      - name: Atualizar Release Drafter
-        uses: release-drafter/release-drafter@v6
-        with:
-          publish: true
-        env:
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+      # - name: Release Drafter
+      #   uses: release-drafter/release-drafter@v6
+      #   with:
+      #     publish: true
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}

@@ -78,7 +78,7 @@ var templateFuncs = template.FuncMap{
 	},
 }
 
-// PageData estrutura os dados enviados para o template.
+// PageData contains the data to be rendered in the template.
 type PageData struct {
 	Title              string
 	Aggregator         kubernetes.PodAggregator
@@ -101,12 +101,12 @@ type TotalMetrics struct {
 	TotalMemoryLimit    float64
 }
 
-// PodController gerencia as operações relacionadas à exibição de pods.
+// PodController  is a controller for handling pod-related requests.
 type PodController struct {
 	k8sClient *kubernetes.KubernetesClient
 }
 
-// NewPodController instancia um novo PodController.
+// NewPodController creates a new PodController.
 func NewPodController() *PodController {
 	k8sClient := kubernetes.NewK8sClient()
 	return &PodController{k8sClient: k8sClient}
@@ -126,9 +126,8 @@ func GetTotalRequestsLimitsAndUsage(podList kubernetes.PodAggregator) TotalMetri
 	return totalMetrics
 }
 
-// HandlePods calcula o uso total de CPU/Memória e os requests, exibe a tabela de pods, etc.
+// HandlePods handles the request for the main page.
 func (pc *PodController) HandlePods(w http.ResponseWriter, r *http.Request) {
-	// Obtém o contexto atual e a lista de contextos do kubeconfig.
 	currentCtx, allContexts, err := kubernetes.GetKubeContexts()
 	if err != nil {
 		log.Printf("Erro ao obter contextos do kubeconfig: %v", err)
@@ -136,7 +135,6 @@ func (pc *PodController) HandlePods(w http.ResponseWriter, r *http.Request) {
 		allContexts = []string{"N/A"}
 	}
 
-	// Lista de namespaces
 	allNamespaces := pc.k8sClient.ListNamespaces()
 
 	// Query strings
@@ -147,14 +145,12 @@ func (pc *PodController) HandlePods(w http.ResponseWriter, r *http.Request) {
 	filterStr := r.URL.Query().Get("filter")
 	errorMsg := r.URL.Query().Get("error")
 
-	// Obter informações dos nodes
 	nodeAggregator, err := pc.k8sClient.GetNodesInfo(r.Context())
 	if err != nil {
 		log.Printf("Erro ao obter informações dos nodes: %v", err)
 		nodeAggregator = &kubernetes.NodeAggregator{}
 	}
 
-	// Monta os dados para o template
 	data := PageData{
 		Title:              "Pods Overview",
 		Aggregator:         pc.k8sClient.PodMetrics(ns),
@@ -182,29 +178,23 @@ func (pc *PodController) HandlePods(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if err := tmpl.ExecuteTemplate(w, "layout", data); err != nil {
-		// http.Error(w, "Erro ao executar template", http.StatusInternalServerError)
 		log.Printf("Erro ao executar template: %v", err)
-		// Evite chamar http.Error se já começou a escrever no response.
-		// Você pode simplesmente logar e retornar.
 		return
 	}
 }
 
-// HandleChangeContext muda o contexto atual do kubeconfig.
 func (pc *PodController) HandleChangeContext(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "Método não permitido", http.StatusMethodNotAllowed)
 		return
 	}
 	novoContexto := r.FormValue("kubecontext")
-	// Atualize o kubeconfig ou a configuração do cliente
 	err := kubernetes.ChangeKubeContext(novoContexto)
 	if err != nil {
 		log.Printf("Erro ao alterar o contexto: %v", err)
 		http.Redirect(w, r, "/", http.StatusSeeOther)
 		return
 	}
-	// Atualize o client se necessário ou reinicialize-o
 	pc.k8sClient = kubernetes.NewK8sClient()
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }

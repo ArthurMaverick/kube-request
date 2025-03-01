@@ -28,4 +28,4 @@ changelog:
       - "^test:"
 release:
   github:
-    owner: arthur-santos
+    owner: ArthurMaverick
