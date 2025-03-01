@@ -1,6 +1,6 @@
 # Resource Monitoring Dashboard
 
-This repository provides an example of a dashboard designed to visualize resource usage in a Kubernetes environment (or a similar platform). The interface aims to simplify the monitoring of CPU and memory consumption, node health, pod status, and more.
+Kube Request is a resource monitoring dashboard for Kubernetes clusters. It provides a unified view of cluster metrics, including CPU and memory usage. The dashboard is designed to help you quickly assess the health of your cluster, identify bottlenecks, and make informed decisions based on real-time data.
 
 ![](./docs/image.png)
 ---
@@ -47,8 +47,6 @@ The screenshot illustrates a unified panel containing:
 ## Requirements
 - **Kubernetes Cluster**: Ensure you have a running Kubernetes cluster.
 -  **Prometheus** or **Metrics Server**: Install the Metrics Server to collect resource usage data.
-
-## How to Use
 
 ## How to Use
 
