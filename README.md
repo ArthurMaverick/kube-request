@@ -68,4 +68,4 @@ The screenshot illustrates a unified panel containing:
      .\kube-request.exe
       ```
 3. **Access the Dashboard**  
-   - Open a web browser and go to `http://localhost:8086` to view the dashboard.  
+   - Automatically opens in your default browser. If not, visit `http://localhost:8081` to view the dashboard.
